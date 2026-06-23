@@ -43,6 +43,8 @@ import {
 
 const PAGE_SIZE = 10;
 
+const GRADE_LEVELS = [3, 4, 5] as const;
+
 type Student = {
   id: number;
   firstname: string;
@@ -120,6 +122,7 @@ const headerClass =
   "bg-zinc-100 px-4 py-4 text-base/7 font-semibold text-zinc-950 first:pl-4 last:pr-4 sm:first:pl-4 sm:last:pr-4";
 const idColClass = "min-w-[6rem] w-[6rem]";
 const dataColClass = "min-w-0";
+const gradeColClass = "min-w-[6rem] w-[6rem]";
 const actionsColClass = "min-w-[5rem] w-[5rem]";
 const cellClass =
   "px-4 py-5 text-base/7 text-zinc-600 first:pl-4 last:pr-4 sm:first:pl-4 sm:last:pr-4";
@@ -138,6 +141,11 @@ function calculateAge(dob: string): number {
   }
 
   return age;
+}
+
+// US approximate: Grade 3 ≈ age 8, so grade = age - 5.
+function calculateGradeLevel(dob: string): number {
+  return calculateAge(dob) - 5;
 }
 
 function matchesAgeRange(student: Student, range: AgeRange): boolean {
@@ -183,6 +191,22 @@ function matchesSearch(student: Student, query: string): boolean {
   }
 
   return false;
+}
+
+function formatGradeLevel(dob: string): string {
+  return `Grade ${calculateGradeLevel(dob)}`;
+}
+
+function matchesGradeFilter(
+  student: Student,
+  gradeFilter: number | null,
+): boolean {
+  if (gradeFilter === null) return true;
+  return calculateGradeLevel(student.dob) === gradeFilter;
+}
+
+function toggleGradeFilter(grade: number, current: number | null): number | null {
+  return current === grade ? null : grade;
 }
 
 function sortStudents(students: Student[], sort: SortPreferences): Student[] {
@@ -238,6 +262,7 @@ export function StudentsTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [ageRange, setAgeRange] = useState<AgeRange>(emptyAgeRange);
   const [ageDraft, setAgeDraft] = useState<AgeRange>(emptyAgeRange);
+  const [gradeFilter, setGradeFilter] = useState<number | null>(null);
   const [sortPreferences, setSortPreferences] = useState<SortPreferences>(
     emptySortPreferences,
   );
@@ -253,9 +278,10 @@ export function StudentsTable() {
       students.filter(
         (student) =>
           matchesSearch(student, searchQuery) &&
-          matchesAgeRange(student, ageRange),
+          matchesAgeRange(student, ageRange) &&
+          matchesGradeFilter(student, gradeFilter),
       ),
-    [students, searchQuery, ageRange],
+    [students, searchQuery, ageRange, gradeFilter],
   );
 
   const sortedStudents = useMemo(
@@ -264,6 +290,8 @@ export function StudentsTable() {
   );
 
   const ageFilterActive = ageRange.min !== "" || ageRange.max !== "";
+  const gradeFilterActive = gradeFilter !== null;
+  const filterActive = ageFilterActive || gradeFilterActive;
   const sortActive = isSortActive(sortPreferences);
 
   const totalPages = Math.max(1, Math.ceil(sortedStudents.length / PAGE_SIZE));
@@ -284,6 +312,7 @@ export function StudentsTable() {
     searchQuery,
     ageRange.min,
     ageRange.max,
+    gradeFilter,
     sortPreferences.firstname,
     sortPreferences.lastname,
     sortPreferences.dob,
@@ -319,10 +348,11 @@ export function StudentsTable() {
     setAgeRange({ min: ageDraft.min.trim(), max: ageDraft.max.trim() });
   }
 
-  function clearAgeFilter() {
+  function clearFilters() {
     const cleared = emptyAgeRange();
     setAgeDraft(cleared);
     setAgeRange(cleared);
+    setGradeFilter(null);
   }
 
   function openDeleteConfirm(student: Student) {
@@ -421,6 +451,9 @@ export function StudentsTable() {
                 Age filter: {ageRange.min || "any"}–{ageRange.max || "any"}
               </span>
             )}
+            {gradeFilterActive && (
+              <span>Grade filter: Grade {gradeFilter}</span>
+            )}
             {sortActive && (
               <span>Sort: {formatSortSummary(sortPreferences)}</span>
             )}
@@ -450,8 +483,8 @@ export function StudentsTable() {
           <Dropdown>
             <DropdownButton
               outline
-              aria-label="Filter students by age"
-              className={`${toolbarDropdownButtonClass}${ageFilterActive ? " ring-2 ring-zinc-400" : ""}`}
+              aria-label="Filter students"
+              className={`${toolbarDropdownButtonClass}${filterActive ? " ring-2 ring-zinc-400" : ""}`}
               onClick={() => setAgeDraft(ageRange)}
             >
               <FunnelIcon data-slot="icon" aria-hidden="true" />
@@ -509,17 +542,34 @@ export function StudentsTable() {
               </DropdownSection>
               <DropdownDivider className="!bg-zinc-300 dark:!bg-zinc-300" />
               <DropdownSection>
+                <DropdownHeading className={dropdownHeadingClass}>
+                  Grade level
+                </DropdownHeading>
+                {GRADE_LEVELS.map((grade) => (
+                  <DropdownItem
+                    key={grade}
+                    className={sortItemClass(gradeFilter === grade)}
+                    onClick={() =>
+                      setGradeFilter((prev) => toggleGradeFilter(grade, prev))
+                    }
+                  >
+                    Grade {grade}
+                  </DropdownItem>
+                ))}
+              </DropdownSection>
+              <DropdownDivider className="!bg-zinc-300 dark:!bg-zinc-300" />
+              <DropdownSection>
                 <DropdownItem
                   className={dropdownItemClass}
                   onClick={applyAgeFilter}
                 >
-                  Apply filter
+                  Apply age filter
                 </DropdownItem>
                 <DropdownItem
                   className={dropdownItemClass}
-                  onClick={clearAgeFilter}
+                  onClick={clearFilters}
                 >
-                  Clear filter
+                  Clear filters
                 </DropdownItem>
               </DropdownSection>
             </DropdownMenu>
@@ -636,6 +686,7 @@ export function StudentsTable() {
             <col />
             <col />
             <col />
+            <col className="w-[6rem]" />
             <col className="w-[5rem]" />
           </colgroup>
           <TableHead>
@@ -652,6 +703,9 @@ export function StudentsTable() {
               <TableHeader className={`${headerClass} ${dataColClass}`}>
                 Date of birth
               </TableHeader>
+              <TableHeader className={`${headerClass} ${gradeColClass}`}>
+                Grade
+              </TableHeader>
               <TableHeader className={`${headerClass} ${actionsColClass}`}>
                 Actions
               </TableHeader>
@@ -661,7 +715,7 @@ export function StudentsTable() {
             {sortedStudents.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={6}
                   className={`${cellClass} text-center text-zinc-500`}
                 >
                   No students match your search or filters.
@@ -681,6 +735,9 @@ export function StudentsTable() {
                   </TableCell>
                   <TableCell className={`${cellClass} ${dataColClass}`}>
                     {student.dob}
+                  </TableCell>
+                  <TableCell className={`${cellClass} ${gradeColClass}`}>
+                    {formatGradeLevel(student.dob)}
                   </TableCell>
                   <TableCell className={`${cellClass} ${actionsColClass}`}>
                     <button
