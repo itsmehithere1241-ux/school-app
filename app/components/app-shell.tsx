@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ComponentType, type SVGProps } from "react";
+import { useEffect, useState, type ComponentType, type SVGProps } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
@@ -24,6 +24,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon, MagnifyingGlassIcon } from "@heroicons/react/20/solid";
+import type { ProfileSummary } from "@/lib/profile-types";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: HomeIcon },
@@ -32,10 +33,18 @@ const navigation = [
   { name: "Classes", href: "/classes", icon: RectangleStackIcon },
 ];
 
-const userNavigation = [
-  { name: "Your profile", href: "#" },
-  { name: "Sign out", href: "#" },
-];
+type UserProfile = ProfileSummary;
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return "?";
+  }
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
 
 function NavLink({
   href,
@@ -114,7 +123,42 @@ function SidebarContent({
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const pathname = usePathname();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProfile() {
+      try {
+        const response = await fetch("/api/auth/profile");
+        if (!response.ok) {
+          return;
+        }
+
+        const body = (await response.json()) as UserProfile;
+        if (!cancelled) {
+          setProfile(body);
+        }
+      } catch {
+        // Profile display falls back to generic labels when fetch fails.
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
+  const displayName = profile?.name ?? "Account";
+  const initials = getInitials(displayName);
+
+  async function handleSignOut() {
+    await fetch("/api/auth/sign-out", { method: "POST" });
+    window.location.href = "/sign-in";
+  }
 
   return (
     <div>
@@ -212,14 +256,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <span
                     className="flex size-8 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-700 outline -outline-offset-1 outline-black/5"
                   >
-                    SC
+                    {initials}
                   </span>
                   <span className="hidden lg:flex lg:items-center">
                     <span
                       aria-hidden="true"
                       className="ml-4 text-sm/6 font-semibold text-gray-900"
                     >
-                      School Admin
+                      {displayName}
                     </span>
                     <ChevronDownIcon
                       aria-hidden="true"
@@ -229,18 +273,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </MenuButton>
                 <MenuItems
                   transition
-                  className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg outline outline-gray-900/5 transition data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+                  className="absolute right-0 z-10 mt-2.5 w-40 origin-top-right rounded-md bg-white py-2 shadow-lg outline outline-gray-900/5 transition data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
                 >
-                  {userNavigation.map((item) => (
-                    <MenuItem key={item.name}>
-                      <a
-                        href={item.href}
-                        className="block px-3 py-1 text-sm/6 text-gray-900 data-focus:bg-gray-50 data-focus:outline-hidden"
-                      >
-                        {item.name}
-                      </a>
-                    </MenuItem>
-                  ))}
+                  <MenuItem>
+                    <Link
+                      href="/profile"
+                      className="block px-3 py-1 text-sm/6 text-gray-900 data-focus:bg-gray-50 data-focus:outline-hidden"
+                    >
+                      Your profile
+                    </Link>
+                  </MenuItem>
+                  <MenuItem>
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="block w-full px-3 py-1 text-left text-sm/6 text-gray-900 data-focus:bg-gray-50 data-focus:outline-hidden"
+                    >
+                      Sign out
+                    </button>
+                  </MenuItem>
                 </MenuItems>
               </Menu>
             </div>

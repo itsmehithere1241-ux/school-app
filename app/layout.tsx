@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { AppShell } from "./components/app-shell";
+import { ConditionalShell } from "./components/conditional-shell";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,7 +30,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="h-full" suppressHydrationWarning>
-        <AppShell>{children}</AppShell>
+        <ConditionalShell>{children}</ConditionalShell>
       </body>
     </html>
   );

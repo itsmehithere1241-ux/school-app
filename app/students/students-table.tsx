@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { FunnelIcon, MagnifyingGlassIcon, ArrowsUpDownIcon, TrashIcon } from "@heroicons/react/20/solid";
+import Link from "next/link";
+import { FunnelIcon, MagnifyingGlassIcon, ArrowsUpDownIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/20/solid";
 import {
   Alert,
   AlertActions,
@@ -40,6 +41,12 @@ import {
   PaginationPage,
   PaginationPrevious,
 } from "@/app/components/catalyst/pagination";
+import {
+  calculateAge,
+  calculateGradeLevel,
+  formatGradeLevel,
+} from "@/lib/student-utils";
+import { matchesStudentSearch } from "@/lib/table-search";
 
 const PAGE_SIZE = 10;
 
@@ -123,30 +130,9 @@ const headerClass =
 const idColClass = "min-w-[6rem] w-[6rem]";
 const dataColClass = "min-w-0";
 const gradeColClass = "min-w-[6rem] w-[6rem]";
-const actionsColClass = "min-w-[5rem] w-[5rem]";
+const actionsColClass = "min-w-[7rem] w-[7rem]";
 const cellClass =
   "px-4 py-5 text-base/7 text-zinc-600 first:pl-4 last:pr-4 sm:first:pl-4 sm:last:pr-4";
-
-function calculateAge(dob: string): number {
-  const birth = new Date(dob);
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-
-  if (
-    monthDiff < 0 ||
-    (monthDiff === 0 && today.getDate() < birth.getDate())
-  ) {
-    age--;
-  }
-
-  return age;
-}
-
-// US approximate: Grade 3 ≈ age 8, so grade = age - 5.
-function calculateGradeLevel(dob: string): number {
-  return calculateAge(dob) - 5;
-}
 
 function matchesAgeRange(student: Student, range: AgeRange): boolean {
   const minVal = range.min.trim() ? Number.parseInt(range.min, 10) : null;
@@ -163,38 +149,7 @@ function matchesAgeRange(student: Student, range: AgeRange): boolean {
 }
 
 function matchesSearch(student: Student, query: string): boolean {
-  const trimmed = query.trim();
-  if (!trimmed) return true;
-
-  const normalized = trimmed.toLowerCase();
-  const firstname = student.firstname.toLowerCase();
-  const lastname = student.lastname.toLowerCase();
-  const fullName = `${firstname} ${lastname}`;
-  const reverseFullName = `${lastname} ${firstname}`;
-
-  if (String(student.id).startsWith(trimmed)) return true;
-  if (firstname.startsWith(normalized)) return true;
-  if (lastname.startsWith(normalized)) return true;
-  if (fullName.startsWith(normalized)) return true;
-  if (reverseFullName.startsWith(normalized)) return true;
-
-  const parts = normalized.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    const firstPart = parts[0];
-    const lastPart = parts[parts.length - 1];
-    if (firstname.startsWith(firstPart) && lastname.startsWith(lastPart)) {
-      return true;
-    }
-    if (lastname.startsWith(firstPart) && firstname.startsWith(lastPart)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function formatGradeLevel(dob: string): string {
-  return `Grade ${calculateGradeLevel(dob)}`;
+  return matchesStudentSearch(student, query);
 }
 
 function matchesGradeFilter(
@@ -687,7 +642,7 @@ export function StudentsTable() {
             <col />
             <col />
             <col className="w-[6rem]" />
-            <col className="w-[5rem]" />
+            <col className="w-[7rem]" />
           </colgroup>
           <TableHead>
             <TableRow>
@@ -728,10 +683,20 @@ export function StudentsTable() {
                     {student.id}
                   </TableCell>
                   <TableCell className={`${cellClass} ${dataColClass}`}>
-                    {student.firstname}
+                    <Link
+                      href={`/students/${student.id}`}
+                      className="font-medium text-zinc-900 hover:text-zinc-700 hover:underline"
+                    >
+                      {student.firstname}
+                    </Link>
                   </TableCell>
                   <TableCell className={`${cellClass} ${dataColClass}`}>
-                    {student.lastname}
+                    <Link
+                      href={`/students/${student.id}`}
+                      className="font-medium text-zinc-900 hover:text-zinc-700 hover:underline"
+                    >
+                      {student.lastname}
+                    </Link>
                   </TableCell>
                   <TableCell className={`${cellClass} ${dataColClass}`}>
                     {student.dob}
@@ -740,14 +705,23 @@ export function StudentsTable() {
                     {formatGradeLevel(student.dob)}
                   </TableCell>
                   <TableCell className={`${cellClass} ${actionsColClass}`}>
-                    <button
-                      type="button"
-                      onClick={() => openDeleteConfirm(student)}
-                      aria-label={`Delete ${student.firstname} ${student.lastname}`}
-                      className="inline-flex items-center justify-center rounded-lg p-2 text-zinc-600 transition hover:bg-red-50 hover:text-red-600 focus:outline-hidden focus:ring-2 focus:ring-red-500/30"
-                    >
-                      <TrashIcon className="size-5" aria-hidden="true" />
-                    </button>
+                    <div className="flex items-center justify-center gap-1">
+                      <Link
+                        href={`/students/${student.id}`}
+                        aria-label={`Edit ${student.firstname} ${student.lastname}`}
+                        className="inline-flex items-center justify-center rounded-lg p-2 text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900 focus:outline-hidden focus:ring-2 focus:ring-zinc-500/30"
+                      >
+                        <PencilSquareIcon className="size-5" aria-hidden="true" />
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => openDeleteConfirm(student)}
+                        aria-label={`Delete ${student.firstname} ${student.lastname}`}
+                        className="inline-flex items-center justify-center rounded-lg p-2 text-zinc-600 transition hover:bg-red-50 hover:text-red-600 focus:outline-hidden focus:ring-2 focus:ring-red-500/30"
+                      >
+                        <TrashIcon className="size-5" aria-hidden="true" />
+                      </button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

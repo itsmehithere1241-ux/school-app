@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   FunnelIcon,
   MagnifyingGlassIcon,
   ArrowsUpDownIcon,
+  PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/20/solid";
 import {
@@ -38,6 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/components/catalyst/table";
+import { matchesClassSearch } from "@/lib/table-search";
 
 const PAGE_SIZE = 10;
 
@@ -80,7 +83,7 @@ const headerClass =
   "bg-zinc-100 px-4 py-4 text-base/7 font-semibold text-zinc-950 first:pl-4 last:pr-4 sm:first:pl-4 sm:last:pr-4";
 const idColClass = "min-w-[6rem] w-[6rem]";
 const dataColClass = "min-w-0";
-const actionsColClass = "min-w-[5rem] w-[5rem]";
+const actionsColClass = "min-w-[7rem] w-[7rem]";
 const cellClass =
   "px-4 py-5 text-base/7 text-zinc-600 first:pl-4 last:pr-4 sm:first:pl-4 sm:last:pr-4";
 
@@ -127,38 +130,18 @@ function isSortActive(sort: SortPreferences): boolean {
 }
 
 function matchesSearch(row: ClassRow, query: string): boolean {
-  const trimmed = query.trim();
-  if (!trimmed) return true;
-
-  const normalized = trimmed.toLowerCase();
-  const subject = row.class_subject.toLowerCase();
   const teacher = getTeacherRef(row);
-  const teacherName = teacher
-    ? `${teacher.firstname} ${teacher.lastname}`.toLowerCase()
-    : "";
-  const firstname = teacher?.firstname.toLowerCase() ?? "";
-  const lastname = teacher?.lastname.toLowerCase() ?? "";
 
-  if (String(row.id).startsWith(trimmed)) return true;
-  if (subject.startsWith(normalized)) return true;
-  if (String(row.teacher).startsWith(trimmed)) return true;
-  if (teacherName.startsWith(normalized)) return true;
-  if (firstname.startsWith(normalized)) return true;
-  if (lastname.startsWith(normalized)) return true;
-
-  const parts = normalized.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2 && teacher) {
-    const firstPart = parts[0];
-    const lastPart = parts[parts.length - 1];
-    if (firstname.startsWith(firstPart) && lastname.startsWith(lastPart)) {
-      return true;
-    }
-    if (lastname.startsWith(firstPart) && firstname.startsWith(lastPart)) {
-      return true;
-    }
-  }
-
-  return false;
+  return matchesClassSearch(
+    {
+      id: row.id,
+      subject: row.class_subject,
+      teacherId: row.teacher,
+      teacherFirstname: teacher?.firstname,
+      teacherLastname: teacher?.lastname,
+    },
+    query,
+  );
 }
 
 function matchesSubjectFilter(row: ClassRow, subject: string | null): boolean {
@@ -540,7 +523,7 @@ export function ClassesTable() {
             <col className="w-[6rem]" />
             <col />
             <col />
-            <col className="w-[5rem]" />
+            <col className="w-[7rem]" />
           </colgroup>
           <TableHead>
             <TableRow>
@@ -575,20 +558,34 @@ export function ClassesTable() {
                     {row.id}
                   </TableCell>
                   <TableCell className={`${cellClass} ${dataColClass}`}>
-                    {row.class_subject}
+                    <Link
+                      href={`/classes/${row.id}`}
+                      className="font-medium text-zinc-900 hover:text-zinc-700 hover:underline"
+                    >
+                      {row.class_subject}
+                    </Link>
                   </TableCell>
                   <TableCell className={`${cellClass} ${dataColClass}`}>
                     {formatTeacherName(row)}
                   </TableCell>
                   <TableCell className={`${cellClass} ${actionsColClass}`}>
-                    <button
-                      type="button"
-                      onClick={() => openDeleteConfirm(row)}
-                      aria-label={`Delete ${row.class_subject}`}
-                      className="inline-flex items-center justify-center rounded-lg p-2 text-zinc-600 transition hover:bg-red-50 hover:text-red-600 focus:outline-hidden focus:ring-2 focus:ring-red-500/30"
-                    >
-                      <TrashIcon className="size-5" aria-hidden="true" />
-                    </button>
+                    <div className="flex items-center justify-center gap-1">
+                      <Link
+                        href={`/classes/${row.id}`}
+                        aria-label={`Edit ${row.class_subject}`}
+                        className="inline-flex items-center justify-center rounded-lg p-2 text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900 focus:outline-hidden focus:ring-2 focus:ring-zinc-500/30"
+                      >
+                        <PencilSquareIcon className="size-5" aria-hidden="true" />
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => openDeleteConfirm(row)}
+                        aria-label={`Delete ${row.class_subject}`}
+                        className="inline-flex items-center justify-center rounded-lg p-2 text-zinc-600 transition hover:bg-red-50 hover:text-red-600 focus:outline-hidden focus:ring-2 focus:ring-red-500/30"
+                      >
+                        <TrashIcon className="size-5" aria-hidden="true" />
+                      </button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

@@ -38,6 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/components/catalyst/table";
+import { matchesTeacherSearch } from "@/lib/table-search";
 
 const PAGE_SIZE = 10;
 
@@ -115,34 +116,7 @@ function isSortActive(sort: SortPreferences): boolean {
 }
 
 function matchesSearch(teacher: Teacher, query: string): boolean {
-  const trimmed = query.trim();
-  if (!trimmed) return true;
-
-  const normalized = trimmed.toLowerCase();
-  const firstname = teacher.firstname.toLowerCase();
-  const lastname = teacher.lastname.toLowerCase();
-  const fullName = `${firstname} ${lastname}`;
-  const reverseFullName = `${lastname} ${firstname}`;
-
-  if (String(teacher.id).startsWith(trimmed)) return true;
-  if (firstname.startsWith(normalized)) return true;
-  if (lastname.startsWith(normalized)) return true;
-  if (fullName.startsWith(normalized)) return true;
-  if (reverseFullName.startsWith(normalized)) return true;
-
-  const parts = normalized.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    const firstPart = parts[0];
-    const lastPart = parts[parts.length - 1];
-    if (firstname.startsWith(firstPart) && lastname.startsWith(lastPart)) {
-      return true;
-    }
-    if (lastname.startsWith(firstPart) && firstname.startsWith(lastPart)) {
-      return true;
-    }
-  }
-
-  return false;
+  return matchesTeacherSearch(teacher, query);
 }
 
 function matchesActiveStateFilter(
