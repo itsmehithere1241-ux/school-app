@@ -1,0 +1,48 @@
+{
+  "name": "school-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "seed:students": "tsx scripts/seed-students.ts",
+    "seed:student-details": "tsx scripts/seed-student-details.ts",
+    "seed:addresses": "tsx scripts/seed-addresses.ts",
+    "seed:teachers": "tsx scripts/seed-teachers.ts",
+    "seed:teacher-active-state": "tsx scripts/seed-teacher-active-state.ts",
+    "seed:classes": "tsx scripts/seed-classes.ts",
+    "seed:enrollment": "tsx scripts/seed-enrollment.ts",
+    "seed:session": "tsx scripts/seed-session.ts",
+    "seed:attendance": "tsx scripts/seed-attendance.ts",
+    "seed:tuition": "tsx scripts/seed-tuition.ts",
+    "seed:homework": "tsx scripts/seed-homework.ts",
+    "seed:hw-submission": "tsx scripts/seed-hw-submission.ts",
+    "seed:auth": "tsx scripts/seed-auth-user.ts"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.4.0",
+    "@headlessui/react": "^2.2.10",
+    "@heroicons/react": "^2.2.0",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.106.2",
+    "clsx": "^2.1.1",
+    "dotenv": "^17.4.2",
+    "motion": "^12.42.2",
+    "next": "16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.6",
+    "tailwindcss": "^4",
+    "tsx": "^4.22.3",
+    "typescript": "^5"
+  }
+}
