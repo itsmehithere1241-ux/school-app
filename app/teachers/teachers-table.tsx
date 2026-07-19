@@ -12,8 +12,8 @@ import {
   AlertActions,
   AlertDescription,
   AlertTitle,
-} from "@/app/components/catalyst/alert";
-import { Button } from "@/app/components/catalyst/button";
+} from "@/components/catalyst/alert";
+import { Button } from "@/components/catalyst/button";
 import {
   Dropdown,
   DropdownButton,
@@ -22,14 +22,14 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownSection,
-} from "@/app/components/catalyst/dropdown";
+} from "@/components/catalyst/dropdown";
 import {
   Pagination,
   PaginationList,
   PaginationNext,
   PaginationPage,
   PaginationPrevious,
-} from "@/app/components/catalyst/pagination";
+} from "@/components/catalyst/pagination";
 import {
   Table,
   TableBody,
@@ -37,7 +37,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/app/components/catalyst/table";
+} from "@/components/catalyst/table";
 import { matchesTeacherSearch } from "@/lib/table-search";
 
 const PAGE_SIZE = 10;

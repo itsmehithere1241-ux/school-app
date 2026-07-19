@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ConditionalShell } from "./components/conditional-shell";
+import { ConditionalShell } from "@/components/conditional-shell";
 import "./globals.css";
 
 const geistSans = Geist({

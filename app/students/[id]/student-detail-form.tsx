@@ -9,16 +9,16 @@ import {
   AlertActions,
   AlertDescription,
   AlertTitle,
-} from "@/app/components/catalyst/alert";
-import { Button } from "@/app/components/catalyst/button";
-import { Heading } from "@/app/components/catalyst/heading";
+} from "@/components/catalyst/alert";
+import { Button } from "@/components/catalyst/button";
+import { Heading } from "@/components/catalyst/heading";
 import {
   Pagination,
   PaginationList,
   PaginationNext,
   PaginationPage,
   PaginationPrevious,
-} from "@/app/components/catalyst/pagination";
+} from "@/components/catalyst/pagination";
 import {
   Table,
   TableBody,
@@ -26,7 +26,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/app/components/catalyst/table";
+} from "@/components/catalyst/table";
 import type { StudentDetail } from "@/lib/student-detail";
 import { filterPanelSearch, matchesClassSearch } from "@/lib/table-search";
 import { formatGradeLevel } from "@/lib/student-utils";
@@ -34,6 +34,8 @@ import {
   formatClassCredits,
   formatLedgerCredits,
 } from "@/lib/tuition";
+import { StudentAvatarUpload } from "./student-avatar-upload";
+import { StudentDocumentsSection } from "./student-documents-section";
 
 export type ClassOption = {
   id: number;
@@ -72,6 +74,7 @@ export function StudentDetailForm({ initialDetail, allClasses }: Props) {
   const [detail, setDetail] = useState(initialDetail);
   const [firstname, setFirstname] = useState(initialDetail.firstname);
   const [lastname, setLastname] = useState(initialDetail.lastname);
+  const [avatarUrl, setAvatarUrl] = useState(initialDetail.avatarUrl);
   const [dob, setDob] = useState(initialDetail.dob);
   const [averageGrade, setAverageGrade] = useState(
     initialDetail.averageGrade?.toString() ?? "",
@@ -87,6 +90,7 @@ export function StudentDetailForm({ initialDetail, allClasses }: Props) {
   const [enrolledClassIds, setEnrolledClassIds] = useState<number[]>(
     initialDetail.classes.map((cls) => cls.id),
   );
+  const [documents, setDocuments] = useState(initialDetail.documents);
   const [classToRemove, setClassToRemove] = useState<ClassOption | null>(null);
   const [showAddClassesPanel, setShowAddClassesPanel] = useState(false);
   const [addClassSearchQuery, setAddClassSearchQuery] = useState("");
@@ -116,6 +120,8 @@ export function StudentDetailForm({ initialDetail, allClasses }: Props) {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const fullName = `${firstname} ${lastname}`.trim() || "Student";
+  const studentInitials =
+    `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase() || "?";
   const gradeLevel = dob ? formatGradeLevel(dob) : "—";
   const classCredits = detail.tuition.classCredits;
   const creditsDisplayClass =
@@ -347,6 +353,7 @@ export function StudentDetailForm({ initialDetail, allClasses }: Props) {
       setDetail(body);
       setFirstname(body.firstname);
       setLastname(body.lastname);
+      setAvatarUrl(body.avatarUrl ?? null);
       setDob(body.dob);
       setAverageGrade(
         body.averageGrade === null ? "" : String(body.averageGrade),
@@ -411,7 +418,21 @@ export function StudentDetailForm({ initialDetail, allClasses }: Props) {
       </Link>
 
       <header className="mt-4 mb-8">
-        <Heading className="text-3xl/9 font-semibold sm:text-3xl/9">
+        <StudentAvatarUpload
+          studentId={detail.id}
+          avatarUrl={avatarUrl}
+          studentName={fullName}
+          initials={studentInitials}
+          onUploadDone={(publicUrl) => {
+            setAvatarUrl(publicUrl);
+            setDetail((prev) => ({
+              ...prev,
+              avatarUrl: publicUrl.split("?")[0],
+            }));
+          }}
+        />
+
+        <Heading className="mt-6 text-3xl/9 font-semibold sm:text-3xl/9">
           {fullName}
         </Heading>
         <p className="mt-2 text-sm text-zinc-600">Student ID: {detail.id}</p>
@@ -632,6 +653,12 @@ export function StudentDetailForm({ initialDetail, allClasses }: Props) {
             )}
           </div>
         </section>
+
+        <StudentDocumentsSection
+          studentId={detail.id}
+          documents={documents}
+          onDocumentsChange={setDocuments}
+        />
 
         <section className="rounded-xl border border-zinc-300 bg-white p-6 shadow-sm">
           <h2 className="text-base font-semibold text-zinc-950">Tuition</h2>

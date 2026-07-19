@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Heading } from "@/app/components/catalyst/heading";
+import { Heading } from "@/components/catalyst/heading";
 import type { ProfileResponse } from "@/lib/profile-types";
 
 const inputClassName =

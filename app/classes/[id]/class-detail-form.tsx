@@ -9,9 +9,9 @@ import {
   AlertActions,
   AlertDescription,
   AlertTitle,
-} from "@/app/components/catalyst/alert";
-import { Button } from "@/app/components/catalyst/button";
-import { Heading } from "@/app/components/catalyst/heading";
+} from "@/components/catalyst/alert";
+import { Button } from "@/components/catalyst/button";
+import { Heading } from "@/components/catalyst/heading";
 import type { ClassDetail, EnrolledStudent } from "@/lib/class-detail";
 import {
   filterPanelSearch,

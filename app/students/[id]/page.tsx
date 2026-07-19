@@ -46,7 +46,9 @@ export default async function StudentDetailPage({
     throw new Error(classesResult.error.message);
   }
 
-  const allClasses: ClassOption[] = ((classesResult.data ?? []) as ClassRow[]).map(
+  const allClasses: ClassOption[] = (
+    (classesResult.data ?? []) as unknown as ClassRow[]
+  ).map(
     (cls) => ({
       id: cls.id,
       subject: cls.class_subject,

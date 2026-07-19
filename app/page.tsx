@@ -1,4 +1,4 @@
-import { Heading } from "@/app/components/catalyst/heading";
+import { Heading } from "@/components/catalyst/heading";
 
 export default function Home() {
   return (

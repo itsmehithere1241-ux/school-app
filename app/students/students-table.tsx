@@ -8,8 +8,8 @@ import {
   AlertActions,
   AlertDescription,
   AlertTitle,
-} from "@/app/components/catalyst/alert";
-import { Button } from "@/app/components/catalyst/button";
+} from "@/components/catalyst/alert";
+import { Button } from "@/components/catalyst/button";
 import {
   Dropdown,
   DropdownButton,
@@ -18,14 +18,14 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownSection,
-} from "@/app/components/catalyst/dropdown";
+} from "@/components/catalyst/dropdown";
 import {
   Field,
   FieldGroup,
   Fieldset,
   Label,
-} from "@/app/components/catalyst/fieldset";
-import { Input } from "@/app/components/catalyst/input";
+} from "@/components/catalyst/fieldset";
+import { Input } from "@/components/catalyst/input";
 import {
   Table,
   TableBody,
@@ -33,14 +33,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/app/components/catalyst/table";
+} from "@/components/catalyst/table";
 import {
   Pagination,
   PaginationList,
   PaginationNext,
   PaginationPage,
   PaginationPrevious,
-} from "@/app/components/catalyst/pagination";
+} from "@/components/catalyst/pagination";
 import {
   calculateAge,
   calculateGradeLevel,

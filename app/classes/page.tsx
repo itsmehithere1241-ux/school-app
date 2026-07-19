@@ -1,4 +1,4 @@
-import { Heading } from "@/app/components/catalyst/heading";
+import { Heading } from "@/components/catalyst/heading";
 import { ClassesTable } from "./classes-table";
 
 export default function ClassesPage() {
