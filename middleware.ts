@@ -1,5 +1,5 @@
+import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
-import { updateSession } from "./lib/supabase/middleware";
 
 function hasSupabaseEnv() {
   return Boolean(
@@ -28,6 +28,38 @@ function configurationErrorResponse() {
       headers: { "Content-Type": "text/html; charset=utf-8" },
     },
   );
+}
+
+async function updateSession(request: NextRequest) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+  let supabaseResponse = NextResponse.next({ request });
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => {
+          request.cookies.set(name, value);
+        });
+
+        supabaseResponse = NextResponse.next({ request });
+
+        cookiesToSet.forEach(({ name, value, options }) => {
+          supabaseResponse.cookies.set(name, value, options);
+        });
+      },
+    },
+  });
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return { supabaseResponse, user };
 }
 
 export async function middleware(request: NextRequest) {
@@ -60,10 +92,6 @@ export async function middleware(request: NextRequest) {
 
     return supabaseResponse;
   } catch (error) {
-    if (error instanceof Error && error.message === "MISSING_SUPABASE_ENV") {
-      return configurationErrorResponse();
-    }
-
     console.error("Middleware error:", error);
     return configurationErrorResponse();
   }
