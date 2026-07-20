@@ -1,8 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
-import {
-  getMiddlewareSupabaseConfig,
-  updateSession,
-} from "./lib/supabase/middleware";
+import { updateSession } from "./lib/supabase/middleware";
+
+function hasSupabaseEnv() {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  );
+}
 
 function configurationErrorResponse() {
   return new NextResponse(
@@ -27,7 +31,7 @@ function configurationErrorResponse() {
 }
 
 export async function middleware(request: NextRequest) {
-  if (!getMiddlewareSupabaseConfig()) {
+  if (!hasSupabaseEnv()) {
     return configurationErrorResponse();
   }
 
